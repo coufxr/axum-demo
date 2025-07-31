@@ -1,9 +1,19 @@
 mod apps;
+mod project;
 
 use axum::{Router, routing::get};
 
+use migration::MigratorTrait;
+use project::db;
+
 #[tokio::main]
-async fn main() -> Result<(), anyhow::Error> {
+async fn main() -> anyhow::Result<()> {
+    // init
+    let db = db::init().await?;
+    migration::Migrator::up(&db, None)
+        .await
+        .expect("执行迁移失败");
+
     // build our application with a single route
     let app = Router::new()
         .route("/", get(|| async { "Hello, World!" })) // 根路由
